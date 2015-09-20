@@ -1,0 +1,11 @@
+[package]
+name = "testvst"
+version = "0.1.0"
+authors = ["Jordan Earls <earlz@earlz.net>"]
+
+[dependencies.vst2]
+git = "https://github.com/overdrivenpotato/rust-vst2"
+
+[lib]
+name = "basicvst"
+crate-type = ["dylib"]
