@@ -19,6 +19,7 @@ impl Plugin for BasicPlugin {
             name: "Basic Plugin".to_string(),
             unique_id: 1358, // Used by hosts to differentiate between plugins.
             parameters: 1,
+            silent_when_stopped: true,
 
             ..Default::default()
         }
