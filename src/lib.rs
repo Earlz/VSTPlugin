@@ -25,7 +25,7 @@ impl Plugin for BasicPlugin {
     }
     fn get_parameter_label(&self, index: i32) -> String { 
     	match index{
-    		0 => String::from("max"),
+    		0 => self.limit_param.to_string(),
     		_ => String::from("unknown")
     	}
     }
@@ -37,7 +37,7 @@ impl Plugin for BasicPlugin {
     }
     fn get_parameter_text(&self, index: i32) -> String { 
     	match index{
-    		0 => String::from("xxx"),
+    		0 => String::from("value"),
     		_ => String::from("unknown")
     	}
     }
