@@ -52,25 +52,20 @@ impl BasicPlugin{
 			cap+=*s;
 			if cap > self.cap_param {
 				neg=1;
-				if last < self.cap_param * 0.8 {
+				//if last < self.cap_param * 0.08 {
 					outs.push(*s);
-				}
+				//}
 			}else if cap < -self.cap_param {
 				neg=-1;
-				if last > -(self.cap_param*0.8) {
+				//if last > -(self.cap_param*0.08) {
 					outs.push(*s);
-				}
+				//}
 			}
-			if neg == 1 {
-				let t=self.average_out(outs);
-				self.kickback = t * 0.4;
-				return t;
-			} else if neg == -1 {
-				let t=self.average_out(outs);
-				self.kickback = t * 0.4;
-				return t;
-			}
+
 			last=cap;
+		}
+		if self.average_out(self.history[0..10]){
+
 		}
 		return 0.0;
 	}
@@ -78,7 +73,10 @@ impl BasicPlugin{
 
 impl Plugin for BasicPlugin {
 	fn init(&mut self) {
-		self.history.reserve_exact(6000);
+		self.history.reserve_exact(500);
+		for i in 0..500{
+			self.history.push_back(0.0);
+		}
 		self.accumulator = 0.0;
 
 	}
@@ -148,6 +146,7 @@ impl Plugin for BasicPlugin {
 	   			}else{
 	   				outputs[channel][i]=ibuf[i];
 	   			}
+
 	   			if !historied {
 	   				self.history.pop_back();
 	   				self.history.push_front(*sample);
