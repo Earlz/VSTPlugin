@@ -20,7 +20,7 @@ struct BasicPlugin{
 	//params..
 	limit_param: f32, //0
 	kickback_threshold_param: f64, //1
-	cap_param: f64, //2
+	cap_param: f64, //2 //divided by 10
 	kickback_mul_param: f64, //multiplied by 10 // 3
 	history_depth_param: f64, //multiplied by 100 // 4
 }
@@ -122,7 +122,7 @@ impl Plugin for BasicPlugin {
     	match index{
     		0 => self.limit_param,
     		1 => self.kickback_threshold_param as f32,
-    		2 => self.cap_param as f32,
+    		2 => self.cap_param as f32 / 10.0,
     		_ => 0.0
     	}
     }
@@ -131,7 +131,7 @@ impl Plugin for BasicPlugin {
     	match index{
     		0 => self.limit_param=val,
     		1 => self.kickback_threshold_param=val as f64,
-    		2 => self.cap_param = val as f64,
+    		2 => self.cap_param = val as f64 / 10.0 ,
     		_ => ()
     	}
     }
