@@ -10,13 +10,19 @@ use vst2::buffer::AudioBuffer;
 use std::collections::vec_deque::VecDeque;
 
 
-const HISTORY_SIZE: usize = 7000;
 
 #[derive(Default)]
 struct BasicPlugin{
-	limit_param: f32,
 	history: VecDeque<f64>,
-	accumulator: f64
+	accumulator: f64,
+	kickback: f64,
+
+	//params..
+	limit_param: f32, //0
+	kickback_threshold_param: f64, //1
+	cap_param: f64, //2
+	kickback_mul_param: f64, //multiplied by 10 // 3
+	history_depth_param: f64, //multiplied by 100 // 4
 }
 
 impl BasicPlugin{
@@ -34,23 +40,35 @@ impl BasicPlugin{
 		let mut last=0.0;
 		let mut outs = Vec::new();
 		let mut neg=0;
+		if self.kickback > self.kickback_threshold_param || self.kickback < -self.kickback_threshold_param {
+			if self.kickback > 0.0 {
+				self.kickback += -0.05;
+			} else {
+				self.kickback += 0.05;
+			}
+			return self.kickback;
+		}
 		for s in self.history.iter() {
 			cap+=*s;
-			if cap > 0.1 {
+			if cap > self.cap_param {
 				neg=1;
-				if last < 0.08 {
+				if last < self.cap_param * 0.8 {
 					outs.push(*s);
 				}
-			}else if cap < -0.1 {
+			}else if cap < -self.cap_param {
 				neg=-1;
-				if last > -0.08 {
+				if last > -(self.cap_param*0.8) {
 					outs.push(*s);
 				}
 			}
 			if neg == 1 {
-				return self.average_out(outs);
+				let t=self.average_out(outs);
+				self.kickback = t * 0.4;
+				return t;
 			} else if neg == -1 {
-				return self.average_out(outs);
+				let t=self.average_out(outs);
+				self.kickback = t * 0.4;
+				return t;
 			}
 			last=cap;
 		}
@@ -60,15 +78,18 @@ impl BasicPlugin{
 
 impl Plugin for BasicPlugin {
 	fn init(&mut self) {
-		self.history.reserve_exact(HISTORY_SIZE);
+		self.history.reserve_exact(6000);
 		self.accumulator = 0.0;
+
 	}
     fn get_info(&self) -> Info {
         Info {
             name: "Basic Plugin".to_string(),
             unique_id: 1358, // Used by hosts to differentiate between plugins.
-            parameters: 1,
+            parameters: 5,
             silent_when_stopped: true,
+            inputs: 1,
+            outputs: 1,
 
             ..Default::default()
         }
@@ -76,18 +97,23 @@ impl Plugin for BasicPlugin {
     fn get_parameter_label(&self, index: i32) -> String { 
     	match index{
     		0 => self.limit_param.to_string(),
+    		1 => self.kickback_threshold_param.to_string(),
+    		2 => self.cap_param.to_string(),
     		_ => String::from("unknown")
     	}
     }
     fn get_parameter_name(&self, index: i32) -> String { 
     	match index{
     		0 => String::from("limit: "),
+    		1 => String::from("kickback thres: "),
+    		2 => String::from("cap: "),
     		_ => String::from("unknown")
     	}
     }
     fn get_parameter_text(&self, index: i32) -> String { 
     	match index{
     		0 => String::from("value"),
+    		1 => String::from("value"),
     		_ => String::from("unknown")
     	}
     }
@@ -95,6 +121,8 @@ impl Plugin for BasicPlugin {
     fn get_parameter(&self, index: i32) -> f32 { 
     	match index{
     		0 => self.limit_param,
+    		1 => self.kickback_threshold_param as f32,
+    		2 => self.cap_param as f32,
     		_ => 0.0
     	}
     }
@@ -102,6 +130,8 @@ impl Plugin for BasicPlugin {
     fn set_parameter(&mut self, index: i32, val: f32) { 
     	match index{
     		0 => self.limit_param=val,
+    		1 => self.kickback_threshold_param=val as f64,
+    		2 => self.cap_param = val as f64,
     		_ => ()
     	}
     }
@@ -122,7 +152,7 @@ impl Plugin for BasicPlugin {
 	   				self.history.pop_back();
 	   				self.history.push_front(*sample);
 	   				outputs[channel][i]=self.calc_output();
-	   				
+
 	   			}
 	  		}
 	  		historied = true;
