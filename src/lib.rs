@@ -8,6 +8,7 @@ extern crate vst2;
 use vst2::plugin::{Info, Plugin};
 use vst2::buffer::AudioBuffer;
 use std::collections::vec_deque::VecDeque;
+use std::vec::Vec;
 
 
 
@@ -26,7 +27,7 @@ struct BasicPlugin{
 }
 
 impl BasicPlugin{
-	
+	/*
 	fn average_out(&self, avgs: Vec<f64>) -> f64{
 		let mut avg = 0.0;
 		for (i,item) in avgs.iter().enumerate() {
@@ -64,10 +65,15 @@ impl BasicPlugin{
 
 			last=cap;
 		}
+
 		if self.average_out(self.history[0..10]){
 
 		}
 		return 0.0;
+	}
+	*/
+	fn processaudio(&mut self, input: &[f64], output: &mut [f64]){
+
 	}
 }
 
@@ -138,6 +144,8 @@ impl Plugin for BasicPlugin {
     	let (inputs, mut outputs) = buffer.split();
     	let mut historied = false;
     	for (channel, ibuf) in inputs.iter().enumerate() {
+	  		self.processaudio(inputs[channel], &mut outputs[channel]);
+	  		/*
 	   		for (i, sample) in ibuf.iter().enumerate() {
 	   			if *sample > self.limit_param as f64 {
 	   				outputs[channel][i]= self.limit_param as f64;
@@ -155,6 +163,7 @@ impl Plugin for BasicPlugin {
 	   			}
 	  		}
 	  		historied = true;
+	  		*/
   		}
     }
 }
